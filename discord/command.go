@@ -12,12 +12,16 @@ type Command interface {
 
 func ExecuteCommand(parameters []string) (string, error) {
 	var statusCommand commands.StatusCommand
+	var helpCommand commands.HelpCommand
 
 	if statusCommand.Check(parameters) {
 		resp, err := statusCommand.Handle(parameters)
 		if err != nil {
 			return "", err
 		}
+		return resp, nil
+	} else if helpCommand.Check(parameters) {
+		resp, _ := helpCommand.Handle(parameters)
 		return resp, nil
 	}
 	return "", errors.New("command not found")
