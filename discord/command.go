@@ -12,6 +12,7 @@ type Command interface {
 
 func ExecuteCommand(parameters []string) (string, error) {
 	var statusCommand commands.StatusCommand
+	var bugCommand commands.BugCommand
 	var helpCommand commands.HelpCommand
 
 	if statusCommand.Check(parameters) {
@@ -19,6 +20,9 @@ func ExecuteCommand(parameters []string) (string, error) {
 		if err != nil {
 			return "", err
 		}
+		return resp, nil
+	} else if bugCommand.Check(parameters) {
+		resp, _ := bugCommand.Handle(parameters)
 		return resp, nil
 	} else if helpCommand.Check(parameters) {
 		resp, _ := helpCommand.Handle(parameters)
