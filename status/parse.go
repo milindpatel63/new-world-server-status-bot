@@ -7,14 +7,13 @@ import (
 	"strings"
 )
 
-func parseServerListForRegion(doc *goquery.Document, region int) map[string]string {
+func parseServerListForRegion(doc *goquery.Document, region Region) map[string]string {
 	servers := make(map[string]string)
 	doc.Find(".ags-ServerStatus-content-responses-response").Each(func(i int, s *goquery.Selection) {
 		val, exist := s.Attr("data-index")
 		if exist {
 			regionIndex, err := strconv.Atoi(val)
-			if err == nil && regionIndex == region {
-				log.Printf("found region with index %d\n", regionIndex)
+			if err == nil && Region(regionIndex) == region {
 				s = s.Children().Filter(".ags-ServerStatus-content-responses-response-server")
 				s.Each(func(i int, s *goquery.Selection) {
 					serverDiv := s.Children()

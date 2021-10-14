@@ -5,7 +5,7 @@ import (
 	"github.com/joho/godotenv"
 	"log"
 	"newWorldServerStatusBot/config"
-	"newWorldServerStatusBot/status"
+	"newWorldServerStatusBot/discord"
 	"os"
 	"os/signal"
 	"strings"
@@ -56,8 +56,14 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if strings.HasPrefix(m.Content, "!nw") {
-		server := strings.TrimLeft(m.Content, "!nw ")
-		servers := status.GetStatuses()
-		s.ChannelMessageSend(m.ChannelID, "status for "+server+": "+servers[server])
+		commandPrefix := strings.TrimLeft(m.Content, "!nw ")
+		params := strings.Split(commandPrefix, " ")
+		response, err := discord.ExecuteCommand(params)
+		if err != nil {
+			_, _ = s.ChannelMessageSend(m.ChannelID, "oops! something went wrong: "+err.Error())
+			log.Fatalf("command '%v' failed: %s", params, err)
+		} else {
+			_, _ = s.ChannelMessageSend(m.ChannelID, response)
+		}
 	}
 }
