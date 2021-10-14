@@ -1,1 +1,1 @@
-web: newWorldServerStatusBot
+worker: newWorldServerStatusBot
