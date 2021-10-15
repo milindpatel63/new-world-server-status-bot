@@ -31,3 +31,29 @@ func parseServerListForRegion(doc *goquery.Document, region Region) map[string]s
 	})
 	return servers
 }
+
+func parseServerStatus(doc *goquery.Document, name string, region Region) string {
+	var status string
+	doc.Find(".ags-ServerStatus-content-responses-response").Each(func(i int, s *goquery.Selection) {
+		val, exist := s.Attr("data-index")
+		if exist {
+			regionIndex, err := strconv.Atoi(val)
+			if err == nil && Region(regionIndex) == region {
+				s = s.Children().Filter(".ags-ServerStatus-content-responses-response-server")
+				s.Each(func(i int, s *goquery.Selection) {
+					serverDiv := s.Children()
+					n := strings.TrimSpace(serverDiv.Last().Text())
+					if n == name {
+						wrapper := serverDiv.First().Children()
+						if s, exists := wrapper.First().Attr("title"); !exists {
+							log.Fatalf("something went wrong trying to find the status of server \"%s\"\n", name)
+						} else {
+							status = s
+						}
+					}
+				})
+			}
+		}
+	})
+	return status
+}

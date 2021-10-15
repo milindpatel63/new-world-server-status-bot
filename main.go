@@ -5,10 +5,11 @@ import (
 	"github.com/joho/godotenv"
 	"log"
 	"newWorldServerStatusBot/config"
-	"newWorldServerStatusBot/discord"
+	notify2 "newWorldServerStatusBot/discord/handlers/command/notify"
+	"newWorldServerStatusBot/discord/handlers/messageCreate"
+	"newWorldServerStatusBot/notify"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 )
 
@@ -23,7 +24,11 @@ func main() {
 		return
 	}
 
-	dg.AddHandler(messageCreate)
+	notifySubQueue := make(chan notify2.Subscriber)
+	go notify.NotifyHandler(dg, notifySubQueue)
+	dg.AddHandler(messageCreate.MessageCreateHandler([]interface{}{
+		notifySubQueue,
+	}))
 
 	dg.Identify.Intents = discordgo.IntentsGuildMessages
 
@@ -43,23 +48,5 @@ func main() {
 	if err != nil {
 		log.Fatalln("error closing Discord sesssion: ", err)
 		return
-	}
-}
-
-func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if m.Author.ID == s.State.User.ID {
-		return
-	}
-
-	if strings.HasPrefix(m.Content, "!nw") {
-		commandPrefix := strings.TrimLeft(m.Content, "!nw ")
-		params := strings.Split(commandPrefix, " ")
-		response, err := discord.ExecuteCommand(params)
-		if err != nil {
-			_, _ = s.ChannelMessageSend(m.ChannelID, "oops! something went wrong: "+err.Error())
-			log.Fatalf("command '%v' failed: %s", params, err)
-		} else {
-			_, _ = s.ChannelMessageSend(m.ChannelID, response)
-		}
 	}
 }
